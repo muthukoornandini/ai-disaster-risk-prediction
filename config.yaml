@@ -1,0 +1,29 @@
+# Configuration for AI-Based Disaster Risk Prediction and Alert System
+
+data:
+  csv_path: "data/disaster_data.csv"
+  n_synthetic_samples: 12000
+  test_size: 0.15
+  val_size: 0.15
+  random_state: 42
+
+model:
+  hidden_layers: [128, 64, 32]
+  dropout: 0.3
+  learning_rate: 0.001
+  epochs: 60
+  batch_size: 64
+  early_stopping_patience: 10
+
+alerts:
+  min_alert_level: "Medium"   # Low | Medium | High | Critical
+  channels:
+    console: true
+    file_log: true
+    webhook: false
+    webhook_url: ""
+
+server:
+  host: "0.0.0.0"
+  port: 5000
+  debug: true

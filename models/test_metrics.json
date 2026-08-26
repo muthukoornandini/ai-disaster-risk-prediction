@@ -1,0 +1,7 @@
+{
+  "disaster_type_accuracy": 0.9611111283302307,
+  "disaster_type_loss": 0.1046438217163086,
+  "loss": 0.3316819965839386,
+  "risk_level_accuracy": 0.8861111402511597,
+  "risk_level_loss": 0.25823351740837097
+}

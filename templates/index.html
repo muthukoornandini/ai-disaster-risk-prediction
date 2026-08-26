@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Disaster Risk Prediction &amp; Alert System</title>
+<style>
+  :root {
+    --low: #22c55e; --medium: #eab308; --high: #f97316; --critical: #ef4444;
+  }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background:#0f172a; color:#e2e8f0; margin:0; }
+  header { background:#111827; padding:24px 32px; border-bottom:1px solid #1f2937; }
+  header h1 { margin:0; font-size:22px; }
+  header p { margin:4px 0 0; color:#94a3b8; font-size:14px; }
+  .container { max-width:960px; margin:32px auto; padding:0 20px; }
+  .card { background:#1e293b; border-radius:12px; padding:24px; margin-bottom:24px; box-shadow:0 4px 12px rgba(0,0,0,.3); }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  label { display:block; font-size:13px; color:#94a3b8; margin-bottom:4px; }
+  input, select { width:100%; padding:8px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; box-sizing:border-box; }
+  button { margin-top:16px; padding:10px 20px; background:#3b82f6; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; }
+  button:hover { background:#2563eb; }
+  #result { margin-top:20px; }
+  .badge { display:inline-block; padding:4px 12px; border-radius:999px; font-weight:bold; font-size:13px; }
+  .Low { background:var(--low); color:#052e16; }
+  .Medium { background:var(--medium); color:#422006; }
+  .High { background:var(--high); color:#431407; }
+  .Critical { background:var(--critical); color:#450a0a; }
+  pre { background:#0f172a; padding:12px; border-radius:8px; overflow-x:auto; font-size:12px; }
+  .muted { color:#94a3b8; font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🌪️ AI-Based Disaster Risk Prediction &amp; Alert System</h1>
+  <p>Deep learning risk classification from live environmental sensor data</p>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h3>Enter Sensor Readings</h3>
+    <div class="grid" id="form-grid"></div>
+    <label style="margin-top:12px;">Location</label>
+    <input id="location" value="Sample Location" />
+    <button onclick="runPredict()">Predict Risk</button>
+    <button onclick="runAlert()" style="background:#dc2626;">Predict + Send Alert</button>
+    <div id="result"></div>
+  </div>
+
+  <div class="card">
+    <h3>About this system</h3>
+    <p class="muted">
+      A multi-output deep neural network (TensorFlow/Keras) trained on rainfall, temperature,
+      humidity, wind speed, river level, soil moisture, seismic magnitude, and pressure readings.
+      It predicts both a <b>risk level</b> (Low/Medium/High/Critical) and a <b>likely disaster
+      type</b> (flood, cyclone, earthquake, drought, or none), then feeds high-risk predictions
+      into the alert pipeline for automated notification.
+    </p>
+  </div>
+</div>
+
+<script>
+const features = {{ features|tojson }};
+const defaults = {
+  rainfall_mm: 120, temperature_c: 26, humidity_pct: 85, wind_speed_kmh: 40,
+  river_level_m: 6.5, soil_moisture_pct: 72, seismic_magnitude: 0.3, pressure_hpa: 995
+};
+const grid = document.getElementById('form-grid');
+features.forEach(f => {
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `<label>${f}</label><input type="number" step="0.01" id="${f}" value="${defaults[f] ?? 0}">`;
+  grid.appendChild(wrap);
+});
+
+function collect() {
+  const data = {};
+  features.forEach(f => data[f] = parseFloat(document.getElementById(f).value));
+  data.location = document.getElementById('location').value;
+  return data;
+}
+
+async function runPredict() {
+  const data = collect();
+  const res = await fetch('/api/predict', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  const json = await res.json();
+  renderResult(json, null);
+}
+
+async function runAlert() {
+  const data = collect();
+  const res = await fetch('/api/alert', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+  const json = await res.json();
+  renderResult(json.prediction, json);
+}
+
+function renderResult(prediction, alertResp) {
+  const el = document.getElementById('result');
+  if (!prediction || prediction.error) {
+    el.innerHTML = `<p style="color:#f87171;">${prediction ? prediction.error : 'Error'}</p>`;
+    return;
+  }
+  let html = `<p style="margin-top:16px;">Risk Level:
+    <span class="badge ${prediction.risk_level}">${prediction.risk_level}</span>
+    &nbsp; Predicted type: <b>${prediction.predicted_disaster_type}</b>
+    &nbsp; Confidence: ${(prediction.risk_confidence*100).toFixed(1)}%</p>`;
+  if (alertResp) {
+    html += `<p class="muted">Alert triggered: ${alertResp.alert_triggered}</p>`;
+  }
+  html += `<pre>${JSON.stringify(prediction, null, 2)}</pre>`;
+  el.innerHTML = html;
+}
+</script>
+</body>
+</html>
