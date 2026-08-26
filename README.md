@@ -1,4 +1,9 @@
 # AI-Based Disaster Risk Prediction and Alert System
+## 🚀 Live Demo
+
+🔗 **[AI-Based Disaster Risk Prediction & Alert System](https://ai-disaster-risk-prediction-p0fq.onrender.com)**
+
+> Try the live application to enter environmental sensor readings and receive AI-powered disaster risk predictions and alerts.
 
 A deep learning project that predicts disaster risk levels (Low / Medium / High /
 Critical) and the most likely disaster type (flood, cyclone, earthquake, drought,
